@@ -44,5 +44,5 @@ void *program();
 // codegen.c
 void gen(Node *node);
 
-// main.ch
+// main.c
 void error(char *fmt, ...);
