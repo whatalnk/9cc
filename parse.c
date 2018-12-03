@@ -1,8 +1,18 @@
 #include "9cc.h"
 
+struct
+{
+  char *name;
+  int ty;
+} symbols[] = {
+    {"==", TK_EQ},
+    {"!=", TK_NE},
+    {NULL, 0}};
+
 void tokenize(char *p)
 {
   int i = 0;
+loop:
   while (*p)
   {
     if (isspace(*p))
@@ -11,6 +21,23 @@ void tokenize(char *p)
       continue;
     }
 
+    // Multi-letter operator
+    for (int j = 0; symbols[j].name; j++)
+    {
+      char *name = symbols[j].name;
+      int len = strlen(name);
+      if (strncmp(p, name, len))
+      {
+        continue;
+      }
+      tokens[i].ty = symbols[j].ty;
+      tokens[i].input = p;
+      i++;
+      p += len;
+      goto loop;
+    }
+
+    // Single operatpr
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == '=')
     {
       tokens[i].ty = *p;
@@ -136,9 +163,25 @@ Node *expr()
   return lhs;
 }
 
-Node *assign()
+Node *equality()
 {
   Node *lhs = expr();
+  if (tokens[pos].ty == TK_EQ)
+  {
+    pos++;
+    return new_node(ND_EQ, lhs, expr());
+  }
+  if (tokens[pos].ty == TK_NE)
+  {
+    pos++;
+    return new_node(ND_NE, lhs, expr());
+  }
+  return lhs;
+}
+
+Node *assign()
+{
+  Node *lhs = equality();
   if (tokens[pos].ty == '=')
   {
     pos++;

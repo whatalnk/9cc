@@ -27,4 +27,10 @@ try 15 "5*(9-6)"
 try 4 "a=b=2;a+b;"
 try 5 "a=2;b=3;a+b;"
 try 30 'a=3+2+1;b=5;a*b'
+try 1 '1 == 1'
+try 0 '1 == 0'
+try 0 '1 != 1'
+try 1 '1 != 0'
+try 1 'a=1+2;b=3;a==b'
+try 1 'a=1*2;b=3;a!=b'
 echo OK
