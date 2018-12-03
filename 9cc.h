@@ -50,3 +50,15 @@ void gen(Node *node);
 
 // main.c
 void error(char *fmt, ...);
+
+// util.c
+
+typedef struct
+{
+  void **data;
+  int capacity;
+  int len;
+} Vector;
+
+Vector *new_vector();
+void vec_push(Vector *vec, void *elem);
