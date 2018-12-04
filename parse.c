@@ -60,6 +60,9 @@ loop:
     {
       tokens[i].ty = TK_IDENT;
       tokens[i].input = p;
+      int len = 1;
+      char *name = strndup(p, len);
+      tokens[i].name = *name;
       i++;
       p++;
       continue;
@@ -94,14 +97,11 @@ Node *new_node_num(int val)
   return node;
 }
 
-Node *new_node_ident(char *input)
+Node *new_node_ident(char *name)
 {
   Node *node = malloc(sizeof(Node));
   node->ty = ND_IDENT;
-  // 変数は1文字
-  int len = 1;
-  char *name = strndup(input, len);
-  node->name = *name;
+  node->name = name;
   return node;
 }
 
@@ -115,7 +115,7 @@ Node *term()
   }
   if (tokens[pos].ty == TK_IDENT)
   {
-    return new_node_ident(tokens[pos++].input);
+    return new_node_ident(tokens[pos++].name);
   }
   if (tokens[pos].ty == '(')
   {

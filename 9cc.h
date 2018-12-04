@@ -18,6 +18,7 @@ typedef struct
 {
   int ty;
   int val;
+  char *name;
   char *input;
 } Token;
 
