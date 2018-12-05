@@ -1,5 +1,9 @@
 #include "9cc.h"
 
+static Vector *tokens;
+Node *code[];
+static int pos;
+
 struct
 {
   char *name;
@@ -9,9 +13,10 @@ struct
     {"!=", TK_NE},
     {NULL, 0}};
 
-void tokenize(char *p)
+Vector *tokenize(char *p)
 {
-  int i = 0;
+
+  Vector *v = new_vector();
 loop:
   while (*p)
   {
@@ -30,9 +35,10 @@ loop:
       {
         continue;
       }
-      tokens[i].ty = symbols[j].ty;
-      tokens[i].input = p;
-      i++;
+      Token *t = malloc(sizeof(Token));
+      t->ty = symbols[j].ty;
+      t->input = p;
+      vec_push(v, t);
       p += len;
       goto loop;
     }
@@ -40,30 +46,33 @@ loop:
     // Single operatpr
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == '=')
     {
-      tokens[i].ty = *p;
-      tokens[i].input = p;
-      i++;
+      Token *t = malloc(sizeof(Token));
+      t->ty = *p;
+      t->input = p;
+      vec_push(v, t);
       p++;
       continue;
     }
 
     if (isdigit(*p))
     {
-      tokens[i].ty = TK_NUM;
-      tokens[i].input = p;
-      tokens[i].val = strtol(p, &p, 10);
-      i++;
+      Token *t = malloc(sizeof(Token));
+      t->ty = TK_NUM;
+      t->input = p;
+      t->val = strtol(p, &p, 10);
+      vec_push(v, t);
       continue;
     }
 
     if ('a' <= *p && *p <= 'z')
     {
-      tokens[i].ty = TK_IDENT;
-      tokens[i].input = p;
+      Token *t = malloc(sizeof(Token));
+      t->ty = TK_IDENT;
+      t->input = p;
       int len = 1;
       char *name = strndup(p, len);
-      tokens[i].name = *name;
-      i++;
+      t->name = *name;
+      vec_push(v, t);
       p++;
       continue;
     }
@@ -72,13 +81,14 @@ loop:
     exit(1);
   }
 
-  tokens[i].ty = TK_EOF;
-  tokens[i].input = p;
+  Token *t = malloc(sizeof(Token));
+  t->ty = TK_EOF;
+  t->input = p;
+  vec_push(v, t);
+  return v;
 }
 
 // 再帰下降構文解析
-
-int pos = 0;
 
 Node *new_node(int ty, Node *lhs, Node *rhs)
 {
@@ -109,37 +119,44 @@ Node *expr();
 
 Node *term()
 {
-  if (tokens[pos].ty == TK_NUM)
+  Token *t = tokens->data[pos];
+
+  if (t->ty == TK_NUM)
   {
-    return new_node_num(tokens[pos++].val);
+    pos++;
+    return new_node_num(t->val);
   }
-  if (tokens[pos].ty == TK_IDENT)
+  if (t->ty == TK_IDENT)
   {
-    return new_node_ident(tokens[pos++].name);
+    pos++;
+    return new_node_ident(t->name);
   }
-  if (tokens[pos].ty == '(')
+
+  if (t->ty == '(')
   {
     pos++;
     Node *node = expr();
-    if (tokens[pos].ty != ')')
+    Token *t = tokens->data[pos];
+    if (t->ty != ')')
     {
-      error("開きカッコに対応する閉じカッコがありません: %s", tokens[pos].input);
+      error("開きカッコに対応する閉じカッコがありません: %s", t->input);
     }
     pos++;
     return node;
   }
-  error("数値でも開きカッコでもないトークンです: %s\n", tokens[pos].input);
+  error("数値でも開きカッコでもないトークンです: %s\n", t->input);
 }
 
 Node *mul()
 {
   Node *lhs = term();
-  if (tokens[pos].ty == '*')
+  Token *t = tokens->data[pos];
+  if (t->ty == '*')
   {
     pos++;
     return new_node('*', lhs, mul());
   }
-  if (tokens[pos].ty == '/')
+  if (t->ty == '/')
   {
     pos++;
     return new_node('/', lhs, mul());
@@ -150,12 +167,13 @@ Node *mul()
 Node *expr()
 {
   Node *lhs = mul();
-  if (tokens[pos].ty == '+')
+  Token *t = tokens->data[pos];
+  if (t->ty == '+')
   {
     pos++;
     return new_node('+', lhs, expr());
   }
-  if (tokens[pos].ty == '-')
+  if (t->ty == '-')
   {
     pos++;
     return new_node('-', lhs, expr());
@@ -166,12 +184,13 @@ Node *expr()
 Node *equality()
 {
   Node *lhs = expr();
-  if (tokens[pos].ty == TK_EQ)
+  Token *t = tokens->data[pos];
+  if (t->ty == TK_EQ)
   {
     pos++;
     return new_node(ND_EQ, lhs, expr());
   }
-  if (tokens[pos].ty == TK_NE)
+  if (t->ty == TK_NE)
   {
     pos++;
     return new_node(ND_NE, lhs, expr());
@@ -182,14 +201,11 @@ Node *equality()
 Node *assign()
 {
   Node *lhs = equality();
-  if (tokens[pos].ty == '=')
+  Token *t = tokens->data[pos];
+  if (t->ty == '=')
   {
     pos++;
     return new_node('=', lhs, assign());
-  }
-  if (tokens[pos].ty == ';')
-  {
-    pos++;
   }
   return lhs;
 }
@@ -197,14 +213,29 @@ Node *assign()
 void *program()
 {
   int code_pos = 0;
-  Node *node = assign();
-  code[code_pos] = node;
-  code_pos++;
-  while (tokens[pos].ty != TK_EOF)
+  for (;;)
   {
+    Token *t = tokens->data[pos];
+    if (t->ty == TK_EOF)
+    {
+      break;
+    }
     Node *node = assign();
+    Token *tt = tokens->data[pos];
+    if (tt->ty != ';')
+    {
+      error("; がありません: %d, %s", pos, t->input);
+    }
+    pos++;
     code[code_pos] = node;
     code_pos++;
   }
   code[code_pos] = NULL;
+}
+
+void parse(Vector *v)
+{
+  tokens = v;
+  pos = 0;
+  program();
 }

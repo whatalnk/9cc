@@ -9,7 +9,6 @@ void error(char *fmt, ...)
   exit(1);
 }
 
-Token tokens[100];
 Node *code[100];
 
 int main(int argc, char **argv)
@@ -26,8 +25,8 @@ int main(int argc, char **argv)
     return 0;
   }
 
-  tokenize(argv[1]);
-  program();
+  Vector *tokens = tokenize(argv[1]);
+  parse(tokens);
 
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");

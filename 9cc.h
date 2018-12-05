@@ -39,21 +39,7 @@ typedef struct Node
   char name;
 } Node;
 
-// parse.c
-extern Token tokens[];
-extern Node *code[];
-
-void tokenize(char *p);
-void *program();
-
-// codegen.c
-void gen(Node *node);
-
-// main.c
-void error(char *fmt, ...);
-
 // util.c
-
 typedef struct
 {
   void **data;
@@ -74,4 +60,16 @@ Map *new_map();
 void map_put(Map *map, char *key, void *val);
 void *map_get(Map *map, char *key);
 
+// util_test.c
 void runtest();
+
+// parse.c
+extern Node *code[];
+Vector *tokenize(char *p);
+void parse(Vector *v);
+
+// codegen.c
+void gen(Node *node);
+
+// main.c
+void error(char *fmt, ...);
