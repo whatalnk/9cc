@@ -15,6 +15,15 @@ void gen_lval(Node *node)
 
 void gen(Node *node)
 {
+  if (node->ty == ND_COMP_STMT)
+  {
+    for (int i = 0; i < node->stmts->len; i++)
+    {
+      gen(node->stmts->data[i]);
+      printf("  pop rax\n");
+    }
+    return;
+  }
   if (node->ty == ND_NUM)
   {
     printf("  push %d\n", node->val);

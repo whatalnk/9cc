@@ -9,8 +9,6 @@ void error(char *fmt, ...)
   exit(1);
 }
 
-Node *code[100];
-
 int main(int argc, char **argv)
 {
   if (argc != 2)
@@ -26,7 +24,7 @@ int main(int argc, char **argv)
   }
 
   Vector *tokens = tokenize(argv[1]);
-  parse(tokens);
+  Node *node = parse(tokens);
 
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
@@ -36,11 +34,7 @@ int main(int argc, char **argv)
   printf("  mov rbp, rsp\n");
   printf("  sub rsp, 208\n");
 
-  for (int i = 0; code[i]; i++)
-  {
-    gen(code[i]);
-    printf("  pop rax\n");
-  }
+  gen(node);
 
   printf("  mov rsp, rbp\n");
   printf("  pop rbp\n");

@@ -5,6 +5,27 @@
 #include <string.h>
 #include <stdarg.h>
 
+// util.c
+typedef struct
+{
+  void **data;
+  int capacity;
+  int len;
+} Vector;
+
+Vector *new_vector();
+void vec_push(Vector *vec, void *elem);
+
+typedef struct
+{
+  Vector *keys;
+  Vector *vals;
+} Map;
+
+Map *new_map();
+void map_put(Map *map, char *key, void *val);
+void *map_get(Map *map, char *key);
+
 enum
 {
   TK_NUM = 256,
@@ -28,6 +49,7 @@ enum
   ND_IDENT,
   ND_EQ,
   ND_NE,
+  ND_COMP_STMT,
 };
 
 typedef struct Node
@@ -37,36 +59,15 @@ typedef struct Node
   struct Node *rhs;
   int val;
   char name;
+  Vector *stmts;
 } Node;
-
-// util.c
-typedef struct
-{
-  void **data;
-  int capacity;
-  int len;
-} Vector;
-
-Vector *new_vector();
-void vec_push(Vector *vec, void *elem);
-
-typedef struct
-{
-  Vector *keys;
-  Vector *vals;
-} Map;
-
-Map *new_map();
-void map_put(Map *map, char *key, void *val);
-void *map_get(Map *map, char *key);
 
 // util_test.c
 void runtest();
 
 // parse.c
-extern Node *code[];
 Vector *tokenize(char *p);
-void parse(Vector *v);
+Node *parse(Vector *v);
 
 // codegen.c
 void gen(Node *node);

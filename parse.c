@@ -1,7 +1,6 @@
 #include "9cc.h"
 
 static Vector *tokens;
-Node *code[];
 static int pos;
 
 struct
@@ -213,27 +212,28 @@ Node *assign()
   return lhs;
 }
 
-void *program()
+Node *program()
 {
-  int code_pos = 0;
+  Node *node = malloc(sizeof(Node));
+  node->ty = ND_COMP_STMT;
+  node->stmts = new_vector();
+
   for (;;)
   {
     Token *t = tokens->data[pos];
     if (t->ty == TK_EOF)
     {
-      break;
+      return node;
     }
-    Node *node = assign();
+    Node *e = assign();
     expect(';');
-    code[code_pos] = node;
-    code_pos++;
+    vec_push(node->stmts, e);
   }
-  code[code_pos] = NULL;
 }
 
-void parse(Vector *v)
+Node *parse(Vector *v)
 {
   tokens = v;
   pos = 0;
-  program();
+  return program();
 }
