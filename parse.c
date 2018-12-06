@@ -13,6 +13,14 @@ struct
     {"!=", TK_NE},
     {NULL, 0}};
 
+static void expect(int ty)
+{
+  Token *t = tokens->data[pos];
+  if (t->ty != ty)
+    error("%c (%d) expected, but got %c (%d)", ty, ty, t->ty, t->ty);
+  pos++;
+}
+
 Vector *tokenize(char *p)
 {
 
@@ -136,12 +144,7 @@ Node *term()
   {
     pos++;
     Node *node = expr();
-    Token *t = tokens->data[pos];
-    if (t->ty != ')')
-    {
-      error("開きカッコに対応する閉じカッコがありません: %s", t->input);
-    }
-    pos++;
+    expect(')');
     return node;
   }
   error("数値でも開きカッコでもないトークンです: %s\n", t->input);
@@ -221,12 +224,7 @@ void *program()
       break;
     }
     Node *node = assign();
-    Token *tt = tokens->data[pos];
-    if (tt->ty != ';')
-    {
-      error("; がありません: %d, %s", pos, t->input);
-    }
-    pos++;
+    expect(';');
     code[code_pos] = node;
     code_pos++;
   }
