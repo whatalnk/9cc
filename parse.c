@@ -141,9 +141,20 @@ Node *program()
     {
       return node;
     }
-    Node *e = assign();
-    expect(';');
+    Node *e = malloc(sizeof(Node));
+    if (t->ty == TK_RETURN)
+    {
+      pos++;
+      e->ty = ND_RETURN;
+      e->expr = assign();
+    }
+    else
+    {
+      e->ty = ND_EXPR_STMT;
+      e->expr = assign();
+    }
     vec_push(node->stmts, e);
+    expect(';');
   }
 }
 

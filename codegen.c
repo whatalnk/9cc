@@ -24,6 +24,16 @@ void gen(Node *node)
     }
     return;
   }
+  if (node->ty == ND_RETURN)
+  {
+    gen(node->expr);
+    return;
+  }
+  if (node->ty == ND_EXPR_STMT)
+  {
+    gen(node->expr);
+    return;
+  }
   if (node->ty == ND_NUM)
   {
     printf("  push %d\n", node->val);

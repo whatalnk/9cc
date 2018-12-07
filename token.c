@@ -8,6 +8,7 @@ struct
   char *name;
   int ty;
 } symbols[] = {
+    {"return", TK_RETURN},
     {"==", TK_EQ},
     {"!=", TK_NE},
     {NULL, 0}};

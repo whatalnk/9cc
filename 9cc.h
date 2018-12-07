@@ -30,6 +30,7 @@ enum
 {
   TK_NUM = 256,
   TK_IDENT,
+  TK_RETURN,
   TK_EQ,
   TK_NE,
   TK_EOF,
@@ -47,9 +48,11 @@ enum
 {
   ND_NUM = 256,
   ND_IDENT,
+  ND_RETURN,
   ND_EQ,
   ND_NE,
   ND_COMP_STMT,
+  ND_EXPR_STMT,
 };
 
 typedef struct Node
@@ -59,6 +62,7 @@ typedef struct Node
   struct Node *rhs;
   int val;
   char name;
+  struct Node *expr;
   Vector *stmts;
 } Node;
 
