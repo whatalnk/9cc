@@ -48,6 +48,7 @@ void error_at(char *loc, char *msg) {
   fprintf(stderr, "%s\n", user_input);
   fprintf(stderr, "%*s", pos, "");
   fprintf(stderr, "^ %s\n", msg);
+  exit(1);
 }
 
 void tokenize() {
