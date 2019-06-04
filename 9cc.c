@@ -59,7 +59,7 @@ void tokenize() {
       p++;
       continue;
     }
-    if (*p == '+' || *p == '-') {
+    if (*p == '+' || *p == '-' || *p == '*' || *p == '/') {
       tokens[i].ty = *p;
       tokens[i].input = p;
       i++;
@@ -109,14 +109,28 @@ Node *term() {
   error_at(tokens[pos].input, "Not a number token");
 }
 
-Node *expr() {
+Node *mul() {
   Node *node = term();
 
   for (;;) {
+    if (consume('*')) {
+      node = new_node('*', node, term());
+    } else if (consume('/')) {
+      node = new_node('/', node, term());
+    } else {
+      return node;
+    }
+  }
+}
+
+Node *expr() {
+  Node *node = mul();
+
+  for (;;) {
     if (consume('+')) {
-      node = new_node('+', node, term());
+      node = new_node('+', node, mul());
     } else if (consume('-')) {
-      node = new_node('-', node, term());
+      node = new_node('-', node, mul());
     } else {
       return node;
     }
@@ -141,6 +155,13 @@ void gen(Node *node) {
     break;
   case '-':
     printf("  sub rax, rdi\n");
+    break;
+  case '*':
+    printf("  imul rdi\n");
+    break;
+  case '/':
+    printf("  cqo");
+    printf("  idiv rdi\n");
     break;
   }
   printf("  push rax\n");
