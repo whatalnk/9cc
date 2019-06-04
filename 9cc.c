@@ -9,6 +9,8 @@ enum {
   TK_NUM = 256,
   TK_EQ,
   TK_NE,
+  TK_LE,
+  TK_GE,
   TK_EOF,
 };
 
@@ -22,6 +24,7 @@ enum {
   ND_NUM = 256,
   ND_EQ,
   ND_NE,
+  ND_LE,
 };
 
 typedef struct Node {
@@ -72,6 +75,20 @@ void tokenize() {
     }
     if (!strncmp(p, "!=", 2)) {
       tokens[i].ty = TK_NE;
+      tokens[i].input = p;
+      i++;
+      p += 2;
+      continue;
+    }
+    if (!strncmp(p, "<=", 2)) {
+      tokens[i].ty = TK_LE;
+      tokens[i].input = p;
+      i++;
+      p += 2;
+      continue;
+    }
+    if (!strncmp(p, ">=", 2)) {
+      tokens[i].ty = TK_GE;
       tokens[i].input = p;
       i++;
       p += 2;
@@ -183,6 +200,10 @@ Node *relational() {
       node = new_node('<', node, add());
     } else if (consume('>')) {
       node = new_node('<', add(), node);
+    } else if (consume(TK_LE)) {
+      node = new_node(ND_LE, node, add());
+    } else if (consume(TK_GE)) {
+      node = new_node(ND_LE, add(), node);
     } else {
       return node;
     }
@@ -246,6 +267,11 @@ void gen(Node *node) {
   case '<':
     printf("  cmp rax, rdi\n");
     printf("  setl al\n");
+    printf("  movzb rax, al\n");
+    break;
+  case ND_LE:
+    printf("  cmp rax, rdi\n");
+    printf("  setle al\n");
     printf("  movzb rax, al\n");
     break;
   }
