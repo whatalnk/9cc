@@ -160,7 +160,7 @@ void gen(Node *node) {
     printf("  imul rdi\n");
     break;
   case '/':
-    printf("  cqo");
+    printf("  cqo\n");
     printf("  idiv rdi\n");
     break;
   }
