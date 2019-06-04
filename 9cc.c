@@ -59,7 +59,8 @@ void tokenize() {
       p++;
       continue;
     }
-    if (*p == '+' || *p == '-' || *p == '*' || *p == '/') {
+    if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' ||
+        *p == ')') {
       tokens[i].ty = *p;
       tokens[i].input = p;
       i++;
@@ -102,11 +103,20 @@ int consume(int ty) {
   return 1;
 }
 
+Node *expr();
+
 Node *term() {
+  if (consume('(')) {
+    Node *node = expr();
+    if (!consume(')')) {
+      error_at(tokens[pos].input, "No close parentheses found");
+    }
+    return node;
+  }
   if (tokens[pos].ty == TK_NUM) {
     return new_node_num(tokens[pos++].val);
   }
-  error_at(tokens[pos].input, "Not a number token");
+  error_at(tokens[pos].input, "Not a number token or parenthesis");
 }
 
 Node *mul() {
