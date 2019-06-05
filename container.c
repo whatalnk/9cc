@@ -24,12 +24,12 @@ int expect(int line, int expected, int actual) {
   exit(1);
 }
 
-int runtest() {
+void runtest() {
   Vector *vec = new_vector();
   expect(__LINE__, 0, vec->len);
 
   for (int i = 0; i < 100; i++) {
-    vec_push(vec, (void *)i);
+    vec_push(vec, (void *)(intptr_t)i);
   }
 
   expect(__LINE__, 100, vec->len);

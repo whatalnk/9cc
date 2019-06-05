@@ -1,7 +1,9 @@
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdnoreturn.h>
 #include <string.h>
 
 // container.c
@@ -13,7 +15,7 @@ typedef struct {
 
 Vector *new_vector();
 void vec_push(Vector *vec, void *elem);
-int runtest();
+void runtest();
 
 // parse.c
 // Token
@@ -58,4 +60,4 @@ extern char *user_input;
 extern Vector *tokens;
 extern int pos;
 void error(char *fmt, ...);
-void error_at(char *loc, char *msg);
+noreturn void error_at(char *loc, char *msg);

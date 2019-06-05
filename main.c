@@ -14,7 +14,7 @@ void error(char *fmt, ...) {
   exit(1);
 }
 
-void error_at(char *loc, char *msg) {
+noreturn void error_at(char *loc, char *msg) {
   int pos = loc - user_input;
   fprintf(stderr, "%s\n", user_input);
   fprintf(stderr, "%*s", pos, "");
