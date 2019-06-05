@@ -42,7 +42,7 @@ typedef struct {
 
 char *user_input;
 
-Token tokens[100];
+Vector *tokens;
 
 int pos = 0;
 
@@ -64,61 +64,73 @@ void error_at(char *loc, char *msg) {
   exit(1);
 }
 
-void tokenize() {
+Vector *new_vector();
+void vec_push(Vector *vec, void *elem);
+
+Vector *tokenize() {
   char *p = user_input;
-  int i = 0;
+  Vector *v = new_vector();
   while (*p) {
     if (isspace(*p)) {
       p++;
       continue;
     }
     if (!strncmp(p, "==", 2)) {
-      tokens[i].ty = TK_EQ;
-      tokens[i].input = p;
-      i++;
+      Token *t = malloc(sizeof(Token));
+      t->ty = TK_EQ;
+      t->input = p;
+      vec_push(v, t);
       p += 2;
       continue;
     }
     if (!strncmp(p, "!=", 2)) {
-      tokens[i].ty = TK_NE;
-      tokens[i].input = p;
-      i++;
+      Token *t = malloc(sizeof(Token));
+      t->ty = TK_NE;
+      t->input = p;
+      vec_push(v, t);
       p += 2;
       continue;
     }
     if (!strncmp(p, "<=", 2)) {
-      tokens[i].ty = TK_LE;
-      tokens[i].input = p;
-      i++;
+      Token *t = malloc(sizeof(Token));
+      t->ty = TK_LE;
+      t->input = p;
+      vec_push(v, t);
       p += 2;
       continue;
     }
     if (!strncmp(p, ">=", 2)) {
-      tokens[i].ty = TK_GE;
-      tokens[i].input = p;
-      i++;
+      Token *t = malloc(sizeof(Token));
+      t->ty = TK_GE;
+      t->input = p;
+      vec_push(v, t);
       p += 2;
       continue;
     }
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' ||
         *p == ')' || *p == '<' || *p == '>') {
-      tokens[i].ty = *p;
-      tokens[i].input = p;
-      i++;
+      Token *t = malloc(sizeof(Token));
+      t->ty = *p;
+      t->input = p;
+      vec_push(v, t);
       p++;
       continue;
     }
     if (isdigit(*p)) {
-      tokens[i].ty = TK_NUM;
-      tokens[i].input = p;
-      tokens[i].val = strtol(p, &p, 10);
-      i++;
+      Token *t = malloc(sizeof(Token));
+      t->ty = TK_NUM;
+      t->input = p;
+      t->val = strtol(p, &p, 10);
+      vec_push(v, t);
       continue;
     }
     error_at(p, "Could not tokenize");
   }
-  tokens[i].ty = TK_EOF;
-  tokens[i].input = p;
+  Token *t = malloc(sizeof(Token));
+  t->ty = TK_EOF;
+  t->input = p;
+  vec_push(v, t);
+  return v;
 }
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
@@ -137,7 +149,8 @@ Node *new_node_num(int val) {
 }
 
 int consume(int ty) {
-  if (tokens[pos].ty != ty) {
+  Token *t = tokens->data[pos];
+  if (t->ty != ty) {
     return 0;
   }
   pos++;
@@ -150,14 +163,17 @@ Node *term() {
   if (consume('(')) {
     Node *node = expr();
     if (!consume(')')) {
-      error_at(tokens[pos].input, "No close parentheses found");
+      Token *t = tokens->data[pos];
+      error_at(t->input, "No close parentheses found");
     }
     return node;
   }
-  if (tokens[pos].ty == TK_NUM) {
-    return new_node_num(tokens[pos++].val);
+  Token *t = tokens->data[pos];
+  if (t->ty == TK_NUM) {
+    pos++;
+    return new_node_num(t->val);
   }
-  error_at(tokens[pos].input, "Not a number token or parenthesis");
+  error_at(t->input, "Not a number token or parenthesis");
 }
 
 Node *unary() {
@@ -335,7 +351,7 @@ int main(int argc, char **argv) {
     runtest();
     return 0;
   }
-  tokenize();
+  tokens = tokenize();
   Node *node = expr();
 
   printf(".intel_syntax noprefix\n");
