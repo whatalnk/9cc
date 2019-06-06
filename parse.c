@@ -41,7 +41,7 @@ Vector *tokenize() {
       continue;
     }
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' ||
-        *p == ')' || *p == '<' || *p == '>') {
+        *p == ')' || *p == '<' || *p == '>' || *p == ';') {
       Token *t = malloc(sizeof(Token));
       t->ty = *p;
       t->input = p;
@@ -89,6 +89,8 @@ int consume(int ty) {
   pos++;
   return 1;
 }
+
+Node *code[100];
 
 Node *expr();
 
@@ -181,4 +183,25 @@ Node *equality() {
 Node *expr() {
   Node *node = equality();
   return node;
+}
+
+Node *stmt() {
+  Node *node = expr();
+  if (!consume(';')) {
+    Token *t = tokens->data[pos];
+    error_at(t->input, "Token is not ';'");
+  }
+  return node;
+}
+
+void program() {
+  int i = 0;
+  for (;;) {
+    Token *t = tokens->data[pos];
+    if (t->ty == TK_EOF) {
+      code[i] = NULL;
+      break;
+    }
+    code[i++] = stmt();
+  }
 }

@@ -51,6 +51,9 @@ typedef struct Node {
 
 Vector *tokenize();
 Node *expr();
+void program();
+
+extern Node *code[100];
 
 // codegen.c
 void gen(Node *node);

@@ -33,16 +33,19 @@ int main(int argc, char **argv) {
     runtest();
     return 0;
   }
+
   tokens = tokenize();
-  Node *node = expr();
+  program();
 
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
   printf("main:\n");
 
-  gen(node);
+  for (int i = 0; code[i]; i++) {
+    gen(code[i]);
+    printf("  pop rax\n");
+  }
 
-  printf("  pop rax\n");
   printf("  ret\n");
   return 0;
 }
