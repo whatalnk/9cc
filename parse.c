@@ -1,11 +1,23 @@
 #include "9cc.h"
 
+int is_alnum(char c) {
+  return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_');
+}
+
 Vector *tokenize() {
   char *p = user_input;
   Vector *v = new_vector();
   while (*p) {
     if (isspace(*p)) {
       p++;
+      continue;
+    }
+    if (strncmp(p, "return", 6) == 0 && !is_alnum(p[6])) {
+      Token *t = malloc(sizeof(Token));
+      t->ty = TK_RETURN;
+      t->input = p;
+      vec_push(v, t);
+      p += 6;
       continue;
     }
     if (!strncmp(p, "==", 2)) {
@@ -209,7 +221,14 @@ Node *expr() {
 }
 
 Node *stmt() {
-  Node *node = expr();
+  Node *node;
+  if (consume(TK_RETURN)) {
+    node = malloc(sizeof(Node));
+    node->ty = ND_RETURN;
+    node->lhs = expr();
+  } else {
+    node = expr();
+  }
   if (!consume(';')) {
     Token *t = tokens->data[pos];
     error_at(t->input, "Token is not ';'");
