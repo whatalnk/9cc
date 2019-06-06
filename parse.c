@@ -41,9 +41,17 @@ Vector *tokenize() {
       continue;
     }
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' ||
-        *p == ')' || *p == '<' || *p == '>' || *p == ';') {
+        *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=') {
       Token *t = malloc(sizeof(Token));
       t->ty = *p;
+      t->input = p;
+      vec_push(v, t);
+      p++;
+      continue;
+    }
+    if ('a' <= *p && *p <= 'z') {
+      Token *t = malloc(sizeof(Token));
+      t->ty = TK_IDENT;
       t->input = p;
       vec_push(v, t);
       p++;
@@ -90,8 +98,6 @@ int consume(int ty) {
   return 1;
 }
 
-Node *code[100];
-
 Node *expr();
 
 Node *term() {
@@ -107,6 +113,15 @@ Node *term() {
   if (t->ty == TK_NUM) {
     pos++;
     return new_node_num(t->val);
+  }
+  if (t->ty == TK_IDENT) {
+    pos++;
+    Node *node = malloc(sizeof(Node));
+    node->ty = ND_IDENT;
+    int len = 1;
+    char *name = strndup(t->input, len);
+    node->name = name;
+    return node;
   }
   error_at(t->input, "Not a number token or parenthesis");
 }
@@ -180,8 +195,16 @@ Node *equality() {
   }
 }
 
-Node *expr() {
+Node *assign() {
   Node *node = equality();
+  if (consume('=')) {
+    node = new_node('=', node, assign());
+  }
+  return node;
+}
+
+Node *expr() {
+  Node *node = assign();
   return node;
 }
 

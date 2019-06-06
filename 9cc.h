@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -21,6 +22,7 @@ void runtest();
 // Token
 enum {
   TK_NUM = 256,
+  TK_IDENT,
   TK_EQ,
   TK_NE,
   TK_LE,
@@ -37,6 +39,7 @@ typedef struct {
 // Node
 enum {
   ND_NUM = 256,
+  ND_IDENT,
   ND_EQ,
   ND_NE,
   ND_LE,
@@ -47,6 +50,7 @@ typedef struct Node {
   struct Node *lhs;
   struct Node *rhs;
   int val;
+  char *name;
 } Node;
 
 Vector *tokenize();

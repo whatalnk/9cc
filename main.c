@@ -2,6 +2,7 @@
 
 char *user_input;
 Vector *tokens;
+Node *code[100];
 int pos;
 
 // functions for handling error
@@ -41,11 +42,20 @@ int main(int argc, char **argv) {
   printf(".global main\n");
   printf("main:\n");
 
+  // prologue
+  printf("  push rbp\n");
+  printf("  mov rbp, rsp\n");
+  printf("  sub rsp, 208\n");
+
   for (int i = 0; code[i]; i++) {
     gen(code[i]);
+
     printf("  pop rax\n");
   }
 
+  // epilogue
+  printf("  mov rsp, rbp\n");
+  printf("  pop rbp\n");
   printf("  ret\n");
   return 0;
 }
