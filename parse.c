@@ -1,5 +1,8 @@
 #include "9cc.h"
 
+Map *vars;
+int bpoff;
+
 int is_alnum(char c) {
   return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_');
 }
@@ -61,12 +64,19 @@ Vector *tokenize() {
       p++;
       continue;
     }
-    if ('a' <= *p && *p <= 'z') {
+    // variable
+    if (isalpha(*p) || *p == '_') {
+      int len = 1;
+      while (isalpha(p[len]) || isdigit(p[len]) || p[len] == '_') {
+        len++;
+      }
+      char *name = strndup(p, len);
       Token *t = malloc(sizeof(Token));
       t->ty = TK_IDENT;
       t->input = p;
+      t->name = name;
       vec_push(v, t);
-      p++;
+      p += len;
       continue;
     }
     if (isdigit(*p)) {
@@ -130,9 +140,11 @@ Node *term() {
     pos++;
     Node *node = malloc(sizeof(Node));
     node->ty = ND_IDENT;
-    int len = 1;
-    char *name = strndup(t->input, len);
-    node->name = name;
+    node->name = t->name;
+    if (!map_exists(vars, t->name)) {
+      map_put(vars, t->name, (void *)(intptr_t)bpoff);
+      bpoff += 8;
+    }
     return node;
   }
   error_at(t->input, "Not a number token or parenthesis");
@@ -238,6 +250,8 @@ Node *stmt() {
 
 void program() {
   int i = 0;
+  bpoff = 0;
+  vars = new_map();
   for (;;) {
     Token *t = tokens->data[pos];
     if (t->ty == TK_EOF) {

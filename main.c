@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   // prologue
   printf("  push rbp\n");
   printf("  mov rbp, rsp\n");
-  printf("  sub rsp, 208\n");
+  printf("  sub rsp, %d\n", bpoff);
 
   for (int i = 0; code[i]; i++) {
     gen(code[i]);

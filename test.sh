@@ -53,4 +53,5 @@ try 2 "a=2; return a;"
 try 10 "a=2; b=3+2; return  a*b;"
 try 14 "a = 3; b = 5 * 6 - 8; return a + b / 2;"
 
+try 6 "foo = 1; bar = 2 + 3; return foo + bar;"
 echo OK

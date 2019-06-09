@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +26,8 @@ typedef struct {
 
 Map *new_map();
 void map_put(Map *map, char *keys, void *vals);
-void *map_get(Map *map, char *keys);
+void *map_get(Map *map, char *key);
+bool map_exists(Map *map, char *key);
 
 // parse.c
 // Token
@@ -43,8 +45,12 @@ enum {
 typedef struct {
   int ty;
   int val;
+  char *name;
   char *input;
 } Token;
+
+extern Map *vars;
+extern int bpoff;
 
 // Node
 enum {

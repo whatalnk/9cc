@@ -4,7 +4,7 @@ void gen_lval(Node *node) {
   if (node->ty != ND_IDENT) {
     error("Left value of assignment is not a variable");
   }
-  int offset = ('z' - *node->name + 1) * 8;
+  int offset = (intptr_t)map_get(vars, node->name);
   printf("  mov rax, rbp\n");
   printf("  sub rax, %d\n", offset);
   printf("  push rax\n");
