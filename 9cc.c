@@ -1,115 +1,122 @@
 #include <ctype.h>
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-enum
-{
-  TK_NUM = 256,
+typedef enum {
+  TK_RESERVED,
+  TK_NUM,
   TK_EOF,
+} TokenKind;
+
+typedef struct Token Token;
+
+struct Token {
+  TokenKind kind;
+  Token *next;
+  int val;
+  char *str;
 };
 
-typedef struct
-{
-  int ty;
-  int val;
-  char *input;
-} Token;
+Token *token;
 
-Token tokens[100];
+Token *new_token(TokenKind kind, Token *cur, char *str);
+void error(char *fmt, ...);
 
-void tokenize(char *p)
-{
-  int i = 0;
-  while (*p)
-  {
-    if (isspace(*p))
-    {
+Token *tokenize(char *p) {
+  Token head;
+  head.next = NULL;
+  Token *cur = &head;
+
+  while (*p) {
+    if (isspace(*p)) {
       p++;
       continue;
     }
 
-    if (*p == '+' || *p == '-')
-    {
-      tokens[i].ty = *p;
-      tokens[i].input = p;
-      i++;
-      p++;
+    if (*p == '+' || *p == '-') {
+      cur = new_token(TK_RESERVED, cur, p++);
       continue;
     }
 
-    if (isdigit(*p))
-    {
-      tokens[i].ty = TK_NUM;
-      tokens[i].input = p;
-      tokens[i].val = strtol(p, &p, 10);
-      i++;
+    if (isdigit(*p)) {
+      cur = new_token(TK_NUM, cur, p);
+      cur->val = strtol(p, &p, 10);
       continue;
     }
 
-    fprintf(stderr, "トークナイズできません: %s\n", p);
-    exit(1);
+    error("Can not tokenize");
   }
 
-  tokens[i].ty = TK_EOF;
-  tokens[i].input = p;
+  new_token(TK_EOF, cur, p);
+  return head.next;
 }
 
-void error(int i)
-{
-  fprintf(stderr, "予期せぬトークンです: %s\n", tokens[i].input);
+void error(char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  fprintf(stderr, "\n");
   exit(1);
 }
 
-int main(int argc, char **argv)
-{
-  if (argc != 2)
-  {
-    fprintf(stderr, "引数の個数が正しくありません\n");
+bool consume(char op) {
+  if (token->kind != TK_RESERVED || token->str[0] != op) {
+    return false;
+  }
+  token = token->next;
+  return true;
+}
+
+void expect(char op) {
+  if (token->kind != TK_RESERVED || token->str[0] != op) {
+    error("Not '%c'", op);
+  }
+  token = token->next;
+}
+
+int expect_number() {
+  if (token->kind != TK_NUM) {
+    error("Not a number");
+  }
+  int val = token->val;
+  token = token->next;
+  return val;
+}
+
+bool at_eof() { return token->kind == TK_EOF; }
+
+Token *new_token(TokenKind kind, Token *cur, char *str) {
+  Token *tok = calloc(1, sizeof(Token));
+  tok->kind = kind;
+  tok->str = str;
+  cur->next = tok;
+  return tok;
+}
+
+int main(int argc, char **argv) {
+  if (argc != 2) {
+    fprintf(stderr, "Wrong number of arguments\n");
     return 1;
   }
 
-  tokenize(argv[1]);
+  token = tokenize(argv[1]);
 
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
   printf("main:\n");
 
-  if (tokens[0].ty != TK_NUM)
-  {
-    error(0);
-  }
+  printf("  mov rax, %d\n", expect_number());
 
-  printf("  mov rax, %d\n", tokens[0].val);
-
-  int i = 1;
-  while (tokens[i].ty != TK_EOF)
-  {
-    if (tokens[i].ty == '+')
-    {
-      i++;
-      if (tokens[i].ty != TK_NUM)
-      {
-        error(i);
-      }
-      printf("  add rax, %d\n", tokens[i].val);
-      i++;
+  while (!at_eof()) {
+    if (consume('+')) {
+      printf("  add rax, %d\n", expect_number());
       continue;
     }
-
-    if (tokens[i].ty == '-')
-    {
-      i++;
-      if (tokens[i].ty != TK_NUM)
-      {
-        error(i);
-      }
-      printf("  sub rax, %d\n", tokens[i].val);
-      i++;
-      continue;
-    }
-
-    error(i);
+    expect('-');
+    printf("  sub rax, %d\n", expect_number());
   }
 
   printf("  ret\n");
